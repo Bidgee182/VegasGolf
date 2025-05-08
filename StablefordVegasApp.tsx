@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,12 +9,26 @@ import { Progress } from "@/components/ui/progress";
 import { applyVegasScoring, getNextHole, TEAM_A, TEAM_B } from "@/utils/vegasUtils";
 
 export default function StablefordVegasApp() {
-  const inputRefs = [
-    useRef<HTMLInputElement | null>(null),
-    useRef<HTMLInputElement | null>(null),
-    useRef<HTMLInputElement | null>(null),
-    useRef<HTMLInputElement | null>(null),
-  ];
+  // 1️⃣ State for current hole (must come first)
+const [currentHole, setCurrentHole] = useState<number>(1);
+
+// 2️⃣ Input refs for 4 players
+const inputRefs = [
+  useRef<HTMLInputElement | null>(null),
+  useRef<HTMLInputElement | null>(null),
+  useRef<HTMLInputElement | null>(null),
+  useRef<HTMLInputElement | null>(null),
+];
+
+// 3️⃣ Auto-focus first input when hole changes (keep keyboard open on mobile)
+useEffect(() => {
+  const timeout = setTimeout(() => {
+    inputRefs[0].current?.focus();
+  }, 100); // slight delay ensures input is rendered
+
+  return () => clearTimeout(timeout);
+}, [currentHole]);
+  
   
   const [players, setPlayers] = useState<string[]>(["", "", "", ""]);
   const [gameStarted, setGameStarted] = useState<boolean>(false);
@@ -26,7 +40,6 @@ export default function StablefordVegasApp() {
     Array.from({ length: 18 }, () => ["", "", "", ""])
   );
   const [playedHoles, setPlayedHoles] = useState<number[]>([]);
-  const [currentHole, setCurrentHole] = useState<number>(1);
   const [holeResults, setHoleResults] = useState<string[]>([]);
   const [teamTotals, setTeamTotals] = useState<{ teamA: number; teamB: number }>({
     teamA: 0,
@@ -318,15 +331,23 @@ export default function StablefordVegasApp() {
             {players.map((player, idx) => (
   <div key={idx} className="space-y-1">
     <div key={idx} className="space-y-1">
-  <Input
-    inputMode="numeric"
-    pattern="[0-9]*"
-    type="text"
-    ref={inputRefs[idx]}
-    placeholder={`${player}'s Stableford Points`}
-    value={scores[currentHole - 1][idx]}
-    onChange={(e) => updateScore(idx, e.target.value)}
-  />
+    <Input
+  inputMode="numeric"
+  pattern="[0-9]*"
+  type="text"
+  ref={inputRefs[idx]}
+  placeholder={`${player}'s Stableford Points`}
+  value={scores[currentHole - 1][idx]}
+  onChange={(e) => {
+    const newScores = scores.map((s, rowIdx) =>
+      rowIdx === currentHole - 1 ? [...s.slice(0, idx), e.target.value, ...s.slice(idx + 1)] : s
+    );
+    setScores(newScores);
+  }}
+  onBlur={(e) => {
+    updateScore(idx, e.target.value);
+  }}
+/>
   {scoreErrors[idx] && (
     <p className="text-sm text-red-600">{scoreErrors[idx]}</p>
   )}
