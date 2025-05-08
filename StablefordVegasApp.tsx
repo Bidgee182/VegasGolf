@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,13 @@ import { Progress } from "@/components/ui/progress";
 import { applyVegasScoring, getNextHole, TEAM_A, TEAM_B } from "@/utils/vegasUtils";
 
 export default function StablefordVegasApp() {
+  const inputRefs = [
+    useRef<HTMLInputElement | null>(null),
+    useRef<HTMLInputElement | null>(null),
+    useRef<HTMLInputElement | null>(null),
+    useRef<HTMLInputElement | null>(null),
+  ];
+  
   const [players, setPlayers] = useState<string[]>(["", "", "", ""]);
   const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [playersEntered, setPlayersEntered] = useState<boolean>(false);
@@ -50,7 +57,13 @@ export default function StablefordVegasApp() {
       idx === currentHole - 1 ? [...s.slice(0, index), value, ...s.slice(index + 1)] : s
     );
     setScores(newScores);
+  
+    // Auto-focus next input if any
+    if (index < 3) {
+      inputRefs[index + 1].current?.focus();
+    }
   };
+  
   
   
 
@@ -294,14 +307,21 @@ export default function StablefordVegasApp() {
             <Progress value={Math.round((playedHoles.length / totalHoles) * 100)} />
             {players.map((player, idx) => (
   <div key={idx} className="space-y-1">
-    <Input
-      type="number"
-      min={0}
-      max={5}
-      placeholder={`${player}'s Stableford Points`}
-      value={scores[currentHole - 1][idx]}
-      onChange={(e) => updateScore(idx, e.target.value)}
-    />
+    <div key={idx} className="space-y-1">
+  <Input
+    inputMode="numeric"
+    pattern="[0-9]*"
+    type="text"
+    ref={inputRefs[idx]}
+    placeholder={`${player}'s Stableford Points`}
+    value={scores[currentHole - 1][idx]}
+    onChange={(e) => updateScore(idx, e.target.value)}
+  />
+  {scoreErrors[idx] && (
+    <p className="text-sm text-red-600">{scoreErrors[idx]}</p>
+  )}
+</div>
+
     {scoreErrors[idx] && (
       <p className="text-sm text-red-600">{scoreErrors[idx]}</p>
     )}
