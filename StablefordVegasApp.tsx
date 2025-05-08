@@ -185,121 +185,131 @@ export default function StablefordVegasApp() {
         </Card>
       ) : gameFinished ? (
         <Card>
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-bold text-center">Final Result</h2>
-            <div className="text-center text-lg space-y-2">
-  {teamTotals.teamA > teamTotals.teamB && (
-    <>
-      <div className="text-blue-700 font-bold text-xl">
-        🏆 {players[0]} & {players[1]} win!
-      </div>
-      <div className="text-gray-800">
-        💰 Margin: ${teamTotals.teamA - teamTotals.teamB}
-      </div>
-    </>
-  )}
-  {teamTotals.teamB > teamTotals.teamA && (
-    <>
-      <div className="text-red-700 font-bold text-xl">
-        🏆 {players[2]} & {players[3]} win!
-      </div>
-      <div className="text-gray-800">
-        💰 Margin: ${teamTotals.teamB - teamTotals.teamA}
-      </div>
-    </>
-  )}
-  {teamTotals.teamA === teamTotals.teamB && (
-    <div className="text-black font-semibold text-xl">🤝 It's a tie!</div>
-  )}
-</div>
-            <div className="flex justify-center gap-4">
-              <Button variant="outline" onClick={() => { setGameFinished(false); prevHole(); }}>
-                Go Back to Last Hole
-              </Button>
-              <Button onClick={() => setShowSummary(true)}>Scorecard</Button>
-              <Button onClick={() => window.location.reload()}>Start New Game</Button>
-            </div>
-            {showSummary && (
-              <div>
-                <h3 className="text-lg font-semibold mt-4 mb-2">Game Summary</h3>
-                <table className="w-full text-sm border-collapse">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="border p-2">Hole</th>
-                      {players.map((p, idx) => (
-                        <th
-                          key={idx}
-                          className={`border p-2 ${
-                            idx < 2 ? "bg-blue-100 text-blue-900" : "bg-red-100 text-red-900"
-                          }`}
-                        >
-                          {p}
-                        </th>
-                      ))}
-                      <th className="border p-2">Running Total</th>
-                      <th className="border p-2">Vegas Result</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(() => {
-                      let runningTotal = 0;
+    <CardContent className="space-y-4">
+      <h2 className="text-xl font-bold text-center">Final Result</h2>
 
-                      return playedHoles.map((hole, i) => {
-                        const scoresRow = scores[hole - 1];
-                        const result = holeResults[i];
-
-                        const valueMatch = result.match(/\$([0-9]+)/);
-                        const value = valueMatch ? parseInt(valueMatch[1], 10) : 0;
-
-                        const teamWon = result.includes(players[0]) && result.includes(players[1])
-                          ? "A"
-                          : result.includes(players[2]) && result.includes(players[3])
-                          ? "B"
-                          : null;
-
-                        if (teamWon === "A") runningTotal += value;
-                        else if (teamWon === "B") runningTotal -= value;
-
-                        const runningClass =
-                          runningTotal > 0
-                            ? "text-blue-700 font-semibold"
-                            : runningTotal < 0
-                            ? "text-red-700 font-semibold"
-                            : "text-gray-700";
-
-                        const vegasResult = result.includes("Drawn hole") ? result : `⛳ ${result}`;
-
-                        return (
-                          <tr key={hole} className="odd:bg-gray-50">
-                            <td className="border p-2 text-center">{hole}</td>
-                            {scoresRow.map((score, idx) => (
-                              <td
-                                key={idx}
-                                className={`border p-2 text-center ${
-                                  idx < 2 ? "bg-blue-50" : "bg-red-50"
-                                }`}
-                              >
-                                {score}
-                              </td>
-                            ))}
-                            <td className={`border p-2 text-center ${runningClass}`}>
-                              {runningTotal > 0
-                                ? `${players[0]} & ${players[1]} lead by $${runningTotal}`
-                                : runningTotal < 0
-                                ? `${players[2]} & ${players[3]} lead by $${Math.abs(runningTotal)}`
-                                : "Match tied"}
-                            </td>
-                            <td className="border p-2 text-left">{vegasResult}</td>
-                          </tr>
-                        );
-                      });
-                    })()}
-                  </tbody>
-                </table>
+      {/* ✅ Final result summary */}
+      <div className="px-4 sm:px-8 max-w-full">
+        <div className="text-center text-lg space-y-2">
+          {teamTotals.teamA > teamTotals.teamB && (
+            <>
+              <div className="text-blue-700 font-bold text-xl">
+                🏆 {players[0]} & {players[1]} win!
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <div className="text-gray-800">
+                💰 Margin: ${teamTotals.teamA - teamTotals.teamB}
+              </div>
+            </>
+          )}
+          {teamTotals.teamB > teamTotals.teamA && (
+            <>
+              <div className="text-red-700 font-bold text-xl">
+                🏆 {players[2]} & {players[3]} win!
+              </div>
+              <div className="text-gray-800">
+                💰 Margin: ${teamTotals.teamB - teamTotals.teamA}
+              </div>
+            </>
+          )}
+          {teamTotals.teamA === teamTotals.teamB && (
+            <div className="text-black font-semibold text-xl">🤝 It's a tie!</div>
+          )}
+        </div>
+      </div>
+
+      {/* ✅ Control buttons */}
+      <div className="flex justify-center gap-4 flex-wrap">
+        <Button variant="outline" onClick={() => { setGameFinished(false); prevHole(); }}>
+          Go Back to Last Hole
+        </Button>
+        <Button onClick={() => setShowSummary(true)}>Scorecard</Button>
+        <Button onClick={() => window.location.reload()}>Start New Game</Button>
+      </div>
+
+      {/* ✅ Scorecard (if toggled on) */}
+      {showSummary && (
+        <div>
+          <h3 className="text-lg font-semibold mt-4 mb-2">Game Summary</h3>
+          <div className="overflow-x-auto w-full">
+            <table className="min-w-[600px] text-sm border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border p-1 sm:p-2">Hole</th>
+                  {players.map((p, idx) => (
+                    <th
+                      key={idx}
+                      className={`border p-1 sm:p-2 ${
+                        idx < 2 ? "bg-blue-100 text-blue-900" : "bg-red-100 text-red-900"
+                      }`}
+                    >
+                      {p}
+                    </th>
+                  ))}
+                  <th className="border p-1 sm:p-2">Running Total</th>
+                  <th className="border p-1 sm:p-2">Vegas Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  let runningTotal = 0;
+
+                  return playedHoles.map((hole, i) => {
+                    const scoresRow = scores[hole - 1];
+                    const result = holeResults[i];
+
+                    const valueMatch = result.match(/\$([0-9]+)/);
+                    const value = valueMatch ? parseInt(valueMatch[1], 10) : 0;
+
+                    const teamWon = result.includes(players[0]) && result.includes(players[1])
+                      ? "A"
+                      : result.includes(players[2]) && result.includes(players[3])
+                      ? "B"
+                      : null;
+
+                    if (teamWon === "A") runningTotal += value;
+                    else if (teamWon === "B") runningTotal -= value;
+
+                    const runningClass =
+                      runningTotal > 0
+                        ? "text-blue-700 font-semibold"
+                        : runningTotal < 0
+                        ? "text-red-700 font-semibold"
+                        : "text-gray-700";
+
+                    const vegasResult = result.includes("Drawn hole") ? result : `⛳ ${result}`;
+
+                    return (
+                      <tr key={hole} className="odd:bg-gray-50">
+                        <td className="border p-1 sm:p-2 text-center">{hole}</td>
+                        {scoresRow.map((score, idx) => (
+                          <td
+                            key={idx}
+                            className={`border p-1 sm:p-2 text-center ${
+                              idx < 2 ? "bg-blue-50" : "bg-red-50"
+                            }`}
+                          >
+                            {score}
+                          </td>
+                        ))}
+                        <td className={`border p-1 sm:p-2 text-center ${runningClass}`}>
+                          {runningTotal > 0
+                            ? `${players[0]} & ${players[1]} lead by $${runningTotal}`
+                            : runningTotal < 0
+                            ? `${players[2]} & ${players[3]} lead by $${Math.abs(runningTotal)}`
+                            : "Match tied"}
+                        </td>
+                        <td className="border p-1 sm:p-2 text-left">{vegasResult}</td>
+                      </tr>
+                    );
+                  });
+                })()}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </CardContent>
+  </Card>
       ) : (
         <Card>
           <CardContent className="space-y-4">
